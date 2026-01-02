@@ -16,6 +16,7 @@ class _HomePageState extends State<HomePage> {
   // reference the hive box
   final _todoBox = Hive.box('todoBox');
   ToDoDataBase db = ToDoDataBase();
+  int filter=0;
 
   @override
   void initState() {
@@ -82,6 +83,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
+    //Placed inside build() so it refreshes whenever setState() runs.
+    // Returns only the tasks that match the selected filter (all/completed/incomplete)
+    final filteredList = db.toDoList.where((task) {
+      final completed = task["isCompleted"] ?? false;
+
+      switch (filter) {
+        case 1:
+          return completed;
+        case 2:
+          return !completed;
+        case 0:
+        default:
+          return true;
+      }
+    }).toList();
+
     return Scaffold(
       // backgroundColor: const Color.fromRGBO(149, 215, 174, 1),
         backgroundColor: const Color.fromRGBO(250, 249, 249, 1),
@@ -98,18 +116,38 @@ class _HomePageState extends State<HomePage> {
         ),
         body: db.toDoList.isEmpty
             ? const NoDataPage()
-            : ListView.builder(
-            itemCount: db.toDoList.length,
-            itemBuilder: (context, index) {
-              final task = db.toDoList[index]; //shortcut to get the info from the base
-              return ToDoTile(
-                taskTitle: task["title"],
-                isTaskCompleted: task["isCompleted"] ?? false,
-                dueDate: task["dueDate"], // Added the due time
-                onChanged: (value) => checkBoxChanged(value, index),
-                deleteTask: (context) => deleteTask(index),
-              );
-
-            }));
+            :Column(
+          children: [
+          Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => setState(() => filter = 0),
+              child: const Text("All"),
+            ),
+            TextButton(
+              onPressed: () => setState(() => filter = 1),
+              child: const Text("Completed"),
+            ),
+            TextButton(
+              onPressed: () => setState(() => filter = 2),
+              child: const Text("Not completed"),
+            ),
+          ],
+        ),Expanded(
+          child: ListView.builder(
+                  itemCount:  filteredList.length,
+                  itemBuilder: (context, index) {
+                    final task = filteredList[index]; //shortcut to get the info from the base
+                    return ToDoTile(
+                      taskTitle: task["title"],
+                      isTaskCompleted: task["isCompleted"] ?? false,
+                      dueDate: task["dueDate"], // Added the due time
+                      onChanged: (value) => checkBoxChanged(value, index),
+                      deleteTask: (context) => deleteTask(index),
+                    );
+                  }),
+        )
+       ]) );
   }
 }
