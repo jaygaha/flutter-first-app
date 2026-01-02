@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class ToDoTile extends StatelessWidget {
   final String taskTitle;
   final bool isTaskCompleted;
+  final DateTime? dueDate;
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteTask;
 
@@ -13,6 +14,7 @@ class ToDoTile extends StatelessWidget {
     required this.isTaskCompleted,
     required this.onChanged,
     required this.deleteTask,
+    this.dueDate, // optional
   });
 
   @override
@@ -43,14 +45,28 @@ class ToDoTile extends StatelessWidget {
                 activeColor: const Color.fromRGBO(44, 166, 164, 1),
               ),
 
-              // task name
+              // task name + due date
               Flexible(
-                child: Text(
-                  taskTitle,
-                  style: TextStyle(
-                      decoration: isTaskCompleted
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      taskTitle,
+                      style: TextStyle(
+                        decoration: isTaskCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                      ),
+                    ),
+                    if (dueDate != null)
+                      Text(
+                        "Due: ${dueDate!.day}/${dueDate!.month}/${dueDate!.year}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
