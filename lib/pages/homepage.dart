@@ -37,15 +37,20 @@ class _HomePageState extends State<HomePage> {
   // checkbox was tapped
   void checkBoxChanged(bool? value, int index) {
     setState(() {
-      db.toDoList[index][1] = !db.toDoList[index][1];
+      db.toDoList[index]["isCompleted"] = value ?? false;
     });
     db.updateData();
   }
 
+
   // save new task
-  void saveNewTask() {
+  void saveNewTask(DateTime? dueDate) {
     setState(() {
-      db.toDoList.add([textController.text, false]);
+      db.toDoList.add({
+        "title": textController.text,
+        "isCompleted": false,
+        "dueDate": dueDate,
+      });
       textController.clear();
     });
     Navigator.of(context).pop();
@@ -55,15 +60,17 @@ class _HomePageState extends State<HomePage> {
   // Create a new task
   void createNewTask() {
     showDialog(
-        context: context,
-        builder: (context) {
-          return DialogBox(
-            textController: textController,
-            onSave: saveNewTask,
-            onConcel: () => Navigator.of(context).pop(),
-          );
-        });
+      context: context,
+      builder: (context) {
+        return DialogBox(
+          textController: textController,
+          onSave: (DateTime? selectedDate) => saveNewTask(selectedDate),
+          onCancel: () => Navigator.of(context).pop(),
+        );
+      },
+    );
   }
+
 
   // Delete task
   void deleteTask(int index) {
@@ -76,7 +83,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // backgroundColor: const Color.fromRGBO(149, 215, 174, 1),
+      // backgroundColor: const Color.fromRGBO(149, 215, 174, 1),
         backgroundColor: const Color.fromRGBO(250, 249, 249, 1),
         appBar: AppBar(
           title: const Text('TODO APP'),
@@ -92,14 +99,17 @@ class _HomePageState extends State<HomePage> {
         body: db.toDoList.isEmpty
             ? const NoDataPage()
             : ListView.builder(
-                itemCount: db.toDoList.length,
-                itemBuilder: (context, index) {
-                  return ToDoTile(
-                    taskTitle: db.toDoList[index][0].toString(),
-                    isTaskCompleted: db.toDoList[index][1],
-                    onChanged: (value) => checkBoxChanged(value, index),
-                    deleteTask: (context) => deleteTask(index),
-                  );
-                }));
+            itemCount: db.toDoList.length,
+            itemBuilder: (context, index) {
+              final task = db.toDoList[index]; //shortcut to get the info from the base
+              return ToDoTile(
+                taskTitle: task["title"],
+                isTaskCompleted: task["isCompleted"] ?? false,
+                dueDate: task["dueDate"], // Added the due time
+                onChanged: (value) => checkBoxChanged(value, index),
+                deleteTask: (context) => deleteTask(index),
+              );
+
+            }));
   }
 }
